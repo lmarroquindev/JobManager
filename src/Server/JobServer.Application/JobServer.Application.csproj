@@ -6,4 +6,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\JobServer.Domain\JobServer.Domain.csproj" />
+  </ItemGroup>
+
 </Project>
