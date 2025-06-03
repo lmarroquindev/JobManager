@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: src/Server/JobServer.Api/Dockerfile
+    ports:
+      - "5000:80"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:80
+      - CLIENT_URL=${CLIENT_URL}
+    depends_on:
+      - client
+
+  client:
+    build:
+      context: ./src/client/JobClientReact
+      args:
+        VITE_API_URL: ${API_URL}
+        VITE_WS_URL: ${VITE_WS_URL}
+    ports:
+      - "3000:80"
+    environment:
+      - VITE_API_URL=${API_URL}
+      - VITE_WS_URL=${VITE_WS_URL}
