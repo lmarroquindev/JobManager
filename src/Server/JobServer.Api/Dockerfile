@@ -1,34 +1,34 @@
-# Etapa 1: Build
+# Stage 1: Build
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 
-# Copiar archivo de solución
+# Copy solution file
 COPY JobManager.sln ./
 
-# Copiar archivos de proyecto individualmente
+# Copy individual project files
 COPY src/Server/JobServer.Api/JobServer.Api.csproj ./src/JobServer.Api/
 COPY src/Server/JobServer.Application/JobServer.Application.csproj ./src/JobServer.Application/
 COPY src/Server/JobServer.Domain/JobServer.Domain.csproj ./src/JobServer.Domain/
 COPY src/Server/JobServer.Infrastructure/JobServer.Infrastructure.csproj ./src/JobServer.Infrastructure/
 
-# Restaurar dependencias
+# Restore dependencies
 RUN for file in src/**/*.csproj; do dotnet restore "$file"; done
 
-# Copiar todo el código fuente
+# Copy all source code
 COPY src/ ./src/
 
-# Establecer el directorio de trabajo en el proyecto API
+# Set working directory to the API project
 WORKDIR /app/src/Server/JobServer.Api
 
-# Publicar la aplicación
+# Publish the application
 RUN dotnet publish -c Release -o /out
 
-# Etapa 2: Runtime
+# Stage 2: Runtime
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 
-# Copiar la salida publicada
+# Copy the published output
 COPY --from=build /out .
 
-# Ejecutar la aplicación
+# Run the application
 ENTRYPOINT ["dotnet", "JobServer.Api.dll"]
