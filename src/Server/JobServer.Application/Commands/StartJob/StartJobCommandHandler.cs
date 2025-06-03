@@ -36,7 +36,7 @@ namespace JobServer.Application.Commands.StartJob
         /// <inheritdoc />
         public async Task<Guid> HandleAsync(StartJobCommand command)
         {
-            var semaphore = _semaphores.GetOrAdd(command.JobType, _ => new SemaphoreSlim(5, 5));
+            var semaphore = _semaphores.GetOrAdd(command.JobType, key => new SemaphoreSlim(5, 5));
 
             if (!await semaphore.WaitAsync(0))
                 throw new InvalidOperationException("Maximum concurrent jobs reached for this job type.");
@@ -54,14 +54,13 @@ namespace JobServer.Application.Commands.StartJob
                 finally
                 {
                     await _jobExecutor.MarkJobAsCompletedAsync(job.Id);
+                    semaphore.Release();
 
                     await _notifier.NotifyAsync(new JobNotificationDto(
                         "JobCompleted",
                         job.Id,
                         job.JobType
                     ));
-
-                    semaphore.Release();
                 }
             });
 

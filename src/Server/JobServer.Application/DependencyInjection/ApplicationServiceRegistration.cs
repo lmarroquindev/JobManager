@@ -16,12 +16,12 @@ namespace JobServer.Application.DependencyInjection
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
             // Command Handlers
-            services.AddTransient<IStartJobCommandHandler, StartJobCommandHandler>();
-            services.AddTransient<ICancelJobCommandHandler, CancelJobCommandHandler>();
+            services.AddSingleton<IStartJobCommandHandler, StartJobCommandHandler>();
+            services.AddSingleton<ICancelJobCommandHandler, CancelJobCommandHandler>();
 
             // Query Handlers
-            services.AddTransient<IGetAllJobsQueryHandler, GetAllJobsQueryHandler>();
-            services.AddTransient<IGetJobStatusQueryHandler, GetJobStatusQueryHandler>();
+            services.AddSingleton<IGetAllJobsQueryHandler, GetAllJobsQueryHandler>();
+            services.AddSingleton<IGetJobStatusQueryHandler, GetJobStatusQueryHandler>();
 
             return services;
         }
