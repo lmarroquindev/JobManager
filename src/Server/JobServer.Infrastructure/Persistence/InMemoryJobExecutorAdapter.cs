@@ -60,6 +60,7 @@ namespace JobServer.Infrastructure.Persistence
             if (_jobs.TryGetValue(jobId, out var job) && job.IsRunning)
             {
                 job.CancellationTokenSource.Cancel();
+                job.IsRunning = false;
 
                 await _notifier.NotifyAsync(new JobNotificationDto(
                     "JobCancelled",
