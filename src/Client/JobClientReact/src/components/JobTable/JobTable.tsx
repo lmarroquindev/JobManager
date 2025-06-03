@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { cancelJob } from '../../services/jobService';
 import { useJobContext } from '../../context/JobContext';
 import { useJobWebSocket } from '../../hooks/useJobWebSocket';
+import { JobStatus } from '../../types';
 
 import {
   Table,
@@ -53,13 +54,18 @@ export default function JobTable() {
             <TableCell>{job.jobName}</TableCell>
             <TableCell>{job.status}</TableCell>
             <TableCell>
-              <Button
-                variant="outlined"
-                color="error"
-                onClick={() => handleCancel(job.id)}
-              >
-                Cancel
-              </Button>
+              {
+                job.status === JobStatus.Running && (
+                <Button
+                  variant="outlined"
+                  color="error"
+                  onClick={() => handleCancel(job.id)}
+                >
+                  Cancel
+                </Button>
+                )
+              }
+             
             </TableCell>
           </TableRow>
         ))}
