@@ -98,7 +98,7 @@ namespace JobServer.API.Controllers
             var result = await _cancelJobHandler.HandleAsync(command);
 
             if (!result)
-                return NotFound(new { Message = "Job not found or already completed." });
+                return NotFound(new { error = "Job not found or already completed." });
 
             return Ok(new { Message = "Job cancelled successfully." });
         }
