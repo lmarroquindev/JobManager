@@ -31,9 +31,7 @@ export default function JobTable() {
     }
   };
 
-  // ✅ Conectar al WebSocket
-  useJobWebSocket('ws://localhost:5292/ws', handleJobEvent); //for http only
-//   useJobWebSocket('wss://localhost:44382/ws', handleJobEvent); // for https
+  useJobWebSocket(`${import.meta.env.VITE_WS_URL}`, handleJobEvent);
 
   return (
     <Table>
