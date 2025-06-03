@@ -13,7 +13,7 @@ namespace JobServer.Tests.Features.GetJobStatus
             var jobId = Guid.NewGuid();
             var query = new GetJobStatusQuery(jobId);
 
-            var mockQueryService = new Mock<IJobQueryService>();
+            var mockQueryService = new Mock<IJobQueryRepository>();
             mockQueryService
                 .Setup(x => x.GetJobStatusAsync(jobId))
                 .ReturnsAsync("Running");
@@ -35,7 +35,7 @@ namespace JobServer.Tests.Features.GetJobStatus
             var jobId = Guid.NewGuid();
             var query = new GetJobStatusQuery(jobId);
 
-            var mockQueryService = new Mock<IJobQueryService>();
+            var mockQueryService = new Mock<IJobQueryRepository>();
             mockQueryService
                 .Setup(x => x.GetJobStatusAsync(jobId))
                 .ReturnsAsync("Not Found");

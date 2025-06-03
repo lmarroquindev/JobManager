@@ -1,4 +1,6 @@
-﻿using JobServer.Domain.Interfaces;
+﻿using JobServer.Application.DTOs;
+using JobServer.Application.Interfaces.Services;
+using JobServer.Domain.Interfaces;
 
 namespace JobServer.Application.Commands.CancelJob
 {
@@ -18,17 +20,41 @@ namespace JobServer.Application.Commands.CancelJob
     /// <inheritdoc />
     public class CancelJobCommandHandler : ICancelJobCommandHandler
     {
-        private readonly IJobExecutor _executor;
+        private readonly IJobCommandRepository _executor;
+        private readonly IJobNotifierService _notifier;
+        private readonly IJobQueryRepository _queryService;
 
-        public CancelJobCommandHandler(IJobExecutor executor)
+        public CancelJobCommandHandler(IJobCommandRepository executor, IJobNotifierService notifier, IJobQueryRepository queryService)
         {
             _executor = executor;
+            _notifier = notifier;
+            _queryService = queryService;
         }
 
         /// <inheritdoc />
-        public Task<bool> HandleAsync(CancelJobCommand command)
+        public async Task<bool> HandleAsync(CancelJobCommand command)
         {
-            return _executor.CancelJobAsync(command.JobId);
+            var job = await _queryService.GetJobByIdAsync(command.JobId);
+
+            if (job == null || !job.IsRunning)
+            {
+                return false;
+            }
+
+            var canceled = await _executor.CancelJobAsync(command.JobId);
+
+            if (canceled)
+            {
+                await _notifier.NotifyAsync(new JobNotificationDto(
+                    "JobCancelled",
+                    job.Id,
+                    job.JobType
+                ));
+
+                return true;
+            }
+
+            return false;
         }
     }
 }

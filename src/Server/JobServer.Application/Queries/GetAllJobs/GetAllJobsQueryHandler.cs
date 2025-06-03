@@ -19,9 +19,9 @@ namespace JobServer.Application.Queries.GetAllJobs
     /// <inheritdoc />
     public class GetAllJobsQueryHandler : IGetAllJobsQueryHandler
     {
-        private readonly IJobQueryService _jobQueryService;
+        private readonly IJobQueryRepository _jobQueryService;
 
-        public GetAllJobsQueryHandler(IJobQueryService jobQueryService)
+        public GetAllJobsQueryHandler(IJobQueryRepository jobQueryService)
         {
             _jobQueryService = jobQueryService;
         }

@@ -18,9 +18,9 @@ namespace JobServer.Application.Queries.GetJobStatus
     /// <inheritdoc />
     public class GetJobStatusQueryHandler : IGetJobStatusQueryHandler
     {
-        private readonly IJobQueryService _queryService;
+        private readonly IJobQueryRepository _queryService;
 
-        public GetJobStatusQueryHandler(IJobQueryService queryService)
+        public GetJobStatusQueryHandler(IJobQueryRepository queryService)
         {
             _queryService = queryService;
         }

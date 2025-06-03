@@ -1,4 +1,5 @@
 using JobServer.Application.Commands.StartJob;
+using JobServer.Application.DTOs;
 using JobServer.Application.Interfaces.Services;
 using JobServer.Domain.Entities;
 using JobServer.Domain.Interfaces;
@@ -11,52 +12,76 @@ namespace JobServer.Tests.Features.StartJob
     public class StartJobCommandHandlerTests
     {
         [Fact]
-        public async Task Handle_ShouldReturnJobId_WhenJobIsStartedSuccessfully()
+        public async Task HandleAsync_ShouldReturnJobId_WhenJobIsStartedSuccessfully()
         {
             // Arrange
-            var mockExecutor = new Mock<IJobExecutor>();
+            var mockJobExecutor = new Mock<IJobCommandRepository>();
+            var mockNotifier = new Mock<IJobNotifierService>();
+
             var command = new StartJobCommand("TestType", "TestName");
-            var expectedJobId = Guid.NewGuid();
 
-            mockExecutor
-                .Setup(x => x.StartJobAsync(command.JobType, command.JobName))
-                .ReturnsAsync(expectedJobId);
+            Guid addedJobId = Guid.Empty;
 
-            var handler = new StartJobCommandHandler(mockExecutor.Object);
+            mockJobExecutor
+                .Setup(x => x.AddJobAsync(It.IsAny<Job>()))
+                .Returns<Job>(job =>
+                {
+                    addedJobId = job.Id;
+                    return Task.FromResult(job.Id);
+                });
+
+            mockJobExecutor
+                .Setup(x => x.MarkJobAsCompletedAsync(It.IsAny<Guid>()))
+                .Returns(Task.CompletedTask);
+
+            mockNotifier
+                .Setup(x => x.NotifyAsync(It.IsAny<JobNotificationDto>()))
+                .Returns(Task.CompletedTask);
+
+            var handler = new StartJobCommandHandler(mockJobExecutor.Object, mockNotifier.Object);
 
             // Act
             var result = await handler.HandleAsync(command);
 
             // Assert
-            Assert.Equal(expectedJobId, result);
+            Assert.Equal(addedJobId, result);
+            mockJobExecutor.Verify(x => x.AddJobAsync(It.IsAny<Job>()), Times.Once);
+            mockNotifier.Verify(x => x.NotifyAsync(It.IsAny<JobNotificationDto>()), Times.Never);
+
+            // Wait for background task to complete notification to verify it runs
+            await Task.Delay(16000); // wait more than 15 sec delay inside handler
+
+            mockJobExecutor.Verify(x => x.MarkJobAsCompletedAsync(addedJobId), Times.Once);
+            mockNotifier.Verify(x => x.NotifyAsync(It.Is<JobNotificationDto>(dto => dto.JobId == addedJobId && dto.EventType == "JobCompleted")), Times.Once);
         }
 
-
         [Fact]
-        public async Task StartJobAsync_ShouldThrow_WhenMoreThanFiveJobsAreRunningForSameType()
+        public async Task HandleAsync_ShouldThrow_WhenMoreThanFiveJobsAreRunningForSameType()
         {
             // Arrange
             var jobs = new ConcurrentDictionary<Guid, Job>();
             var mockNotifier = new Mock<IJobNotifierService>();
-            var adapter = new InMemoryJobExecutorAdapter(jobs, mockNotifier.Object);
-            
+            var executor = new InMemoryJobCommandRepository(jobs);
+
+            var handler = new StartJobCommandHandler(executor, mockNotifier.Object);
+
             var jobType = "TestType";
-            
-            // Simulates 5 running jobs (do not release the semaphore)
-            var tasks = new List<Task>();
+
+            var commands = new List<StartJobCommand>();
             for (int i = 0; i < 5; i++)
             {
-                tasks.Add(adapter.StartJobAsync(jobType, $"Job{i}"));
+                commands.Add(new StartJobCommand(jobType, $"Job{i}"));
             }
-            
-            // Wait for the 5 jobs to be registered
-            await Task.WhenAll(tasks);
-            
-            // Act & Assert
-            var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => adapter.StartJobAsync(jobType, "OverflowJob"));
-            
-            Assert.Contains("Maximum of 5 concurrent jobs", ex.Message);
-        }
 
+            // Act - Start 5 jobs in parallel
+            var tasks = commands.Select(c => handler.HandleAsync(c)).ToList();
+
+            await Task.WhenAll(tasks);
+
+            // Assert that starting a 6th job throws due to semaphore limit
+            var exception = await Assert.ThrowsAsync<InvalidOperationException>(() => handler.HandleAsync(new StartJobCommand(jobType, "OverflowJob")));
+
+            Assert.Contains("Maximum concurrent jobs reached", exception.Message);
+        }
     }
 }

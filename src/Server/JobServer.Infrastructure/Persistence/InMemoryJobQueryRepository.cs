@@ -5,11 +5,11 @@ using System.Collections.Concurrent;
 namespace JobServer.Infrastructure.Persistence
 {
     /// <inheritdoc />
-    public class InMemoryJobQueryAdapter : IJobQueryService
+    public class InMemoryJobQueryRepository : IJobQueryRepository
     {
         private readonly ConcurrentDictionary<Guid, Job> _jobs;
 
-        public InMemoryJobQueryAdapter(ConcurrentDictionary<Guid, Job> jobs)
+        public InMemoryJobQueryRepository(ConcurrentDictionary<Guid, Job> jobs)
         {
             _jobs = jobs;
         }
@@ -29,6 +29,12 @@ namespace JobServer.Infrastructure.Persistence
             }
 
             return Task.FromResult("Not Found");
+        }
+        /// <inheritdoc />
+        public Task<Job?> GetJobByIdAsync(Guid jobId)
+        {
+            _jobs.TryGetValue(jobId, out var job);
+            return Task.FromResult(job);
         }
     }
 }

@@ -8,6 +8,11 @@ namespace JobServer.Application.DependencyInjection
 {
     public static class ApplicationServiceRegistration
     {
+        /// <summary>
+        /// Registers application services such as command and query handlers.
+        /// </summary>
+        /// <param name="services">The service collection to add services to.</param>
+        /// <returns>The updated service collection.</returns>
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
             // Command Handlers

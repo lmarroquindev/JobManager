@@ -12,17 +12,31 @@ namespace JobServer.Infrastructure
 {
     public static class InfrastructureServiceRegistration
     {
-        public static IServiceCollection AddInfrastructure(this IServiceCollection services, ConcurrentDictionary<Guid, Job> jobStore)
+        /// <summary>
+        /// Registers infrastructure services including persistence and websocket notifier.
+        /// </summary>
+        /// <param name="services">The service collection to add services to.</param>
+        /// <param name="jobStore">An optional concurrent dictionary to hold jobs. If null, a new one is created.</param>
+        /// <returns>The updated service collection.</returns>
+        public static IServiceCollection AddInfrastructure(
+            this IServiceCollection services,
+            ConcurrentDictionary<Guid, Job>? jobStore = null)
         {
-            services.AddSingleton<IJobExecutor>(sp =>
-            {
-                var notifier = sp.GetRequiredService<IJobNotifierService>();
-                return new InMemoryJobExecutorAdapter(jobStore, notifier);
-            });
+            // Create the job store if not provided
+            var jobs = jobStore ?? new ConcurrentDictionary<Guid, Job>();
 
-            services.AddSingleton<IJobQueryService>(sp => new InMemoryJobQueryAdapter(jobStore));
+            // Register job notifier and websocket services first
             services.AddSingleton<IJobNotifierService, JobNotifierService>();
             services.AddSingleton<IWebSocketService, WebSocketService>();
+
+            // Register job query service using the job store
+            services.AddSingleton<IJobQueryRepository>(sp => new InMemoryJobQueryRepository(jobs));
+
+            // Register job executor passing job store
+            services.AddSingleton<IJobCommandRepository>(sp =>
+            {
+                return new InMemoryJobCommandRepository(jobs);
+            });
 
             return services;
         }

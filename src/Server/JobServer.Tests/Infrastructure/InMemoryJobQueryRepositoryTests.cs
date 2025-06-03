@@ -4,7 +4,7 @@ using System.Collections.Concurrent;
 
 namespace JobServer.Tests.Infrastructure
 {
-    public class InMemoryJobQueryAdapterTests
+    public class InMemoryJobQueryRepositoryTests
     {
         [Fact]
         public async Task GetAllJobsAsync_ShouldReturnAllJobs_WhenJobsExist()
@@ -16,7 +16,7 @@ namespace JobServer.Tests.Infrastructure
             jobs.TryAdd(job1.Id, job1);
             jobs.TryAdd(job2.Id, job2);
 
-            var adapter = new InMemoryJobQueryAdapter(jobs);
+            var adapter = new InMemoryJobQueryRepository(jobs);
 
             // Act
             var result = (await adapter.GetAllJobsAsync()).ToList();
@@ -32,7 +32,7 @@ namespace JobServer.Tests.Infrastructure
         {
             // Arrange
             var jobs = new ConcurrentDictionary<Guid, Job>();
-            var adapter = new InMemoryJobQueryAdapter(jobs);
+            var adapter = new InMemoryJobQueryRepository(jobs);
 
             // Act
             var result = await adapter.GetAllJobsAsync();
@@ -49,7 +49,7 @@ namespace JobServer.Tests.Infrastructure
             var job = new Job("TypeA", "Job1") { IsRunning = true };
             jobs.TryAdd(job.Id, job);
 
-            var adapter = new InMemoryJobQueryAdapter(jobs);
+            var adapter = new InMemoryJobQueryRepository(jobs);
 
             // Act
             var result = await adapter.GetJobStatusAsync(job.Id);
@@ -66,7 +66,7 @@ namespace JobServer.Tests.Infrastructure
             var job = new Job("TypeA", "Job1") { IsRunning = false };
             jobs.TryAdd(job.Id, job);
 
-            var adapter = new InMemoryJobQueryAdapter(jobs);
+            var adapter = new InMemoryJobQueryRepository(jobs);
 
             // Act
             var result = await adapter.GetJobStatusAsync(job.Id);
@@ -80,7 +80,7 @@ namespace JobServer.Tests.Infrastructure
         {
             // Arrange
             var jobs = new ConcurrentDictionary<Guid, Job>();
-            var adapter = new InMemoryJobQueryAdapter(jobs);
+            var adapter = new InMemoryJobQueryRepository(jobs);
 
             var jobId = Guid.NewGuid();
 

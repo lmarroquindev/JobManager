@@ -5,7 +5,7 @@ namespace JobServer.Domain.Interfaces
     /// <summary>
     /// Provides methods to query job information from the system.
     /// </summary>
-    public interface IJobQueryService
+    public interface IJobQueryRepository
     {
         /// <summary>
         /// Retrieves all jobs currently tracked by the system.
@@ -19,5 +19,12 @@ namespace JobServer.Domain.Interfaces
         /// <param name="jobId">The unique identifier of the job.</param>
         /// <returns>A string representing the job status.</returns>
         Task<string> GetJobStatusAsync(Guid jobId);
+
+        /// <summary>
+        /// Retrieves a job by its unique identifier.
+        /// </summary>
+        /// <param name="jobId">The unique identifier of the job.</param>
+        /// <returns>The job if found; otherwise, null.</returns>
+        Task<Job?> GetJobByIdAsync(Guid jobId);
     }
 }

@@ -40,5 +40,28 @@
         /// Gets or sets the cancellation token source used to cancel the job.
         /// </summary>
         public CancellationTokenSource CancellationTokenSource { get; set; } = new();
+
+        /// <summary>
+        /// Marks the job as completed by setting its running state to false
+        /// and disposing of the cancellation token source.
+        /// </summary>
+        public void MarkAsCompleted()
+        {
+            IsRunning = false;
+            CancellationTokenSource.Dispose();
+        }
+
+        /// <summary>
+        /// Cancels the job if it is currently running by triggering the cancellation
+        /// token and marking the job as not running.
+        /// </summary>
+        public void Cancel()
+        {
+            if (!IsRunning)
+                return;
+
+            CancellationTokenSource.Cancel();
+            IsRunning = false;
+        }
     }
 }

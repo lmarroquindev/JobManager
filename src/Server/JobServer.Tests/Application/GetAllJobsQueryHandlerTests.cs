@@ -17,7 +17,7 @@ namespace JobServer.Tests.Features.GetAllJobs
                 new Job("TypeB", "Job2") { IsRunning = false }
             };
 
-            var mockQueryService = new Mock<IJobQueryService>();
+            var mockQueryService = new Mock<IJobQueryRepository>();
             mockQueryService
                 .Setup(x => x.GetAllJobsAsync())
                 .ReturnsAsync(jobs);
@@ -44,7 +44,7 @@ namespace JobServer.Tests.Features.GetAllJobs
         public async Task HandleAsync_ShouldReturnEmptyList_WhenNoJobsExist()
         {
             // Arrange
-            var mockQueryService = new Mock<IJobQueryService>();
+            var mockQueryService = new Mock<IJobQueryRepository>();
             mockQueryService
                 .Setup(x => x.GetAllJobsAsync())
                 .ReturnsAsync(new List<Job>());
