@@ -22,11 +22,13 @@ builder.Services.AddInfrastructure(jobStore);
 builder.Services.AddApplicationServices();
 
 // CORS
+var clientUrl = builder.Configuration["CLIENT_URL"];
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
     {
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins(clientUrl ?? "http://localhost:5173")
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
